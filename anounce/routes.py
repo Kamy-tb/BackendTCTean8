@@ -1,6 +1,6 @@
-from flask import url_for,render_template,redirect
+from flask import url_for,render_template,redirect,request
 from anounce import app,db
-from anounce.models import anounce, anounces_schema
+from anounce.models import anounce, anounces_schema,voiture
 from anounce.form import voitureForm ,searchForm
 
 @app.get('/getallanounces')
@@ -11,15 +11,44 @@ def getanounce():
 
 @ app.route('/formulaire', methods=['GET', 'POST'])
 def formulaire():
-    form = voitureForm()
+    if request.method == 'POST':
+        marque = request.json['marque']
+        modele = request.json['modele']
+        anee = request.json['anee']
+        kilom = request.json['kilom']
+        fuel = request.json['fuel']
+        seller_type = request.json['seller_type']
+        transmission = request.json['transmission']
+        owner = request.json['owner']
+        milleage = request.json['milleage']
+        engine = request.json['engine']
+        max_power = request.json['ax_power']
+        seats = request.json['seats']
 
-    if form.validate_on_submit():
-        new_anounce = anounce(marque=form.marque.data,modele=form.modele.data,anee=form.anee.data,price=form.price.data,kilom=form.kilom.data,fuel=form.fuel.data,seller_type=form.seller_type.data,transmission=form.transmission.data,owner=form.owner.data,milleage=form.milleage.data,engine=form.engine.data,max_power=form.max_power.data,seats=form.seats.data)
-        db.session.add(new_anounce)
+        new_voiture = voiture(marque,modele,anee,kilom,fuel,seller_type,transmission,owner,milleage,engine,max_power,seats)
+        db.session.add(new_voiture)
         db.session.commit()
-        return redirect(url_for('getallanounce'))
+        if (new_voiture): return ('added successfully') 
 
-    return render_template('formulaire.html', form=form)
+import joblib
+clf = joblib.load('./finalized_model_TC.sav')
+@app.route('/prediction<id_user>' , methods = ['POST'])
+def calcul_prix(id_user):
+    marque = request.json['marque']
+    modele = request.json['modele']
+    anee = request.json['anee']
+    kilom = request.json['kilom']
+    fuel = request.json['fuel']
+    seller_type = request.json['seller_type']
+    transmission = request.json['transmission']
+    owner = request.json['owner']
+    milleage = request.json['milleage']
+    engine = request.json['engine']
+    max_power = request.json['ax_power']
+    seats = request.json['seats']
+    table = [[anee ,kilom, fuel , seller_type , transmission , owner , milleage , engine , max_power , seats , marque , modele]]
+    prediction_price = clf.predict(table)
+    
 
 @app.context_processor
 def base():

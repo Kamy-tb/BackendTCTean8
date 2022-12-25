@@ -33,9 +33,17 @@ class voiture(db.Model, UserMixin):
     
 ma = Marshmallow(app)
 
+class voitureschema(ma.Schema):
+    class Meta:
+        fields = ("id","marque", "modele" , "price" , "annee" , "kilom" , "fuel" , "seller_type" ,"transmission" , "owner" , "milleage" , "engine" , "max_power" ,"seats" )
+       
+voiture_schema = voitureschema()
+voitures_schema = voitureschema(many =True) 
+
 class anounceschema(ma.Schema):
     class Meta:
         fields = ("id","name","price")
+        
 
 anounce_schema = anounceschema()
 anounces_schema = anounceschema(many =True)        
